@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">微猫刷分享</string>
+    <string name="warn_title">请输入要刷的用户id,多个用逗号隔开</string>
+    <string name="eng_char_and_chinese_char">分隔符不能同时包含中文和英文,请统一后重新开始</string>
+    <string name="start">开始</string>
+    <string name="pause">暂停</string>
+</resources>
