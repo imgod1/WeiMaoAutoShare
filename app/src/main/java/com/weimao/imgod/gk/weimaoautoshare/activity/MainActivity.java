@@ -1,18 +1,29 @@
-package com.weimao.imgod.gk.weimaoautoshare;
+package com.weimao.imgod.gk.weimaoautoshare.activity;
 
+import android.content.Context;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.weimao.imgod.gk.weimaoautoshare.R;
+import com.weimao.imgod.gk.weimaoautoshare.app.Constants;
+import com.weimao.imgod.gk.weimaoautoshare.bean.SignBean;
+import com.weimao.imgod.gk.weimaoautoshare.utils.EncryptUtils;
+import com.weimao.imgod.gk.weimaoautoshare.utils.GsonUtils;
+import com.weimao.imgod.gk.weimaoautoshare.utils.SPUtils;
 import com.zhy.http.okhttp.OkHttpUtils;
 import com.zhy.http.okhttp.callback.StringCallback;
 import com.zhy.http.okhttp.request.RequestCall;
@@ -24,9 +35,11 @@ import okhttp3.Call;
  */
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
+    private Context mContext;
     public static final String SPLIT_CHAR_ENG = ",";//英语分隔符
     public static final String SPLICT_CHAR_CHINESE = "，";//汉语分隔符
     public static final String SHARE_URL = "http://www.qihumoney.com/tinycat/tinycat/front/customer/sharing?customer.id=";
+    private CoordinatorLayout coorlayout_main;
     private EditText etxt_ids;
     private Button btn_start;
     private NestedScrollView nsv_main;
@@ -34,6 +47,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public static final int MSG_TYPE = 0x00;
     private boolean isShareing = false;//是不是正在分享
+
+    //选择的模式 默认模式为分享
+    private Type currentType = Type.SHARE;
+
+    /**
+     * 刷的三种类型
+     */
+    public enum Type {
+        INVITE, SIGN, SHARE
+    }
+
     private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -79,6 +103,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * 初始化控件
      */
     private void initView() {
+        mContext = this;
+        coorlayout_main = (CoordinatorLayout) findViewById(R.id.coorlayout_main);
         etxt_ids = (EditText) findViewById(R.id.etxt_ids);
         btn_start = (Button) findViewById(R.id.btn_start);
         nsv_main = (NestedScrollView) findViewById(R.id.nsv_main);
@@ -184,5 +210,79 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (null != requestCall) {
             requestCall.cancel();
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_select, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_invite:
+                currentType = Type.INVITE;
+                Snackbar.make(coorlayout_main, "已经切换到刷邀请", Snackbar.LENGTH_SHORT).show();
+                break;
+            case R.id.menu_sign:
+                currentType = Type.SIGN;
+                Snackbar.make(coorlayout_main, "已经切换到刷签到", Snackbar.LENGTH_SHORT).show();
+                break;
+            case R.id.menu_share:
+                currentType = Type.SHARE;
+                Snackbar.make(coorlayout_main, "已经切换到刷分享", Snackbar.LENGTH_SHORT).show();
+                break;
+        }
+        return true;
+    }
+
+
+    /**
+     * 获取验证码
+     *
+     * @param phoneNumber
+     */
+    private void sendMsg(final String phoneNumber) {
+        requestCall = OkHttpUtils.get().url(Constants.SEND_MSG_URL + phoneNumber).build();
+        requestCall.execute(new StringCallback() {
+            @Override
+            public void onError(Call call, Exception e, int id) {
+                String content = txt_content.getText().toString() + "\n第" + (shareCount + 1) + "次遍历邀请,手机号为:" + phoneNumber + "发送验证码失败";
+                setWarnTextAndSetValue(content);
+            }
+
+            @Override
+            public void onResponse(String response, int id) {
+                Log.e("onResponse", "onResponse:" + response);
+                String content = txt_content.getText().toString() + "\n第" + (shareCount + 1) + "次遍历邀请,手机号为:" + phoneNumber + ":" + response;
+                setWarnTextAndSetValue(content);
+            }
+        });
+    }
+
+    /**
+     * 获取验证码
+     *
+     * @param phoneNumber
+     */
+    private void signin(final String phoneNumber, String code) {
+        String url = Constants.SIGNIN_URL + "user.valcode=" + code + "&user.mobile=" + phoneNumber + "&user.spreadCode=" + idArray[sharePosition] + "&user.password=" + EncryptUtils.getInstance().encryptByMD5(phoneNumber);
+        requestCall = OkHttpUtils.get().url(url).build();
+        requestCall.execute(new StringCallback() {
+            @Override
+            public void onError(Call call, Exception e, int id) {
+                String content = txt_content.getText().toString() + "\n第" + (shareCount + 1) + "次遍历注册,手机号为:" + phoneNumber + "注册失败";
+                setWarnTextAndSetValue(content);
+            }
+
+            @Override
+            public void onResponse(String response, int id) {
+                Log.e("onResponse", "onResponse:" + response);
+                SignBean signBean = GsonUtils.getGson().fromJson(response, SignBean.class);
+                String content = txt_content.getText().toString() + "\n第" + (shareCount + 1) + "次遍历注册,手机号为:" + phoneNumber + "注册成功";
+                setWarnTextAndSetValue(content);
+            }
+        });
     }
 }

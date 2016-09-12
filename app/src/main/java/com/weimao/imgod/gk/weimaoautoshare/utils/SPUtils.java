@@ -1,4 +1,4 @@
-package com.weimao.imgod.gk.weimaoautoshare;
+package com.weimao.imgod.gk.weimaoautoshare.utils;
 
 import android.app.Activity;
 import android.content.Context;

@@ -19,10 +19,31 @@ android {
     }
 }
 
+android {
+    packagingOptions {
+//        exclude 'META-INF/services/javax.annotation.processing.Processor'
+//        exclude 'META-INF/maven/com.squareup.okio/okio/pom.xml'
+//        exclude 'META-INF/maven/com.squareup.okio/okio/pom.properties'
+    }
+    splits {
+        //app并没有怎么使用第三方sdk或者so文件的话,这个并没有卵用
+        abi {
+            enable true
+            reset()
+            include 'armeabi-v7a', 'x86'
+        }
+    }
+    defaultConfig {
+        renderscriptTargetApi 19
+        renderscriptSupportModeEnabled false
+    }
+}
+
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.4.0'
     compile 'com.android.support:design:23.4.0'
     compile 'com.zhy:okhttputils:2.6.2'
+    compile 'com.google.code.gson:gson:2.6.2'
 }

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/menu_invite"
+        android:title="刷邀请"></item>
+    <item
+        android:id="@+id/menu_sign"
+        android:title="刷签到"></item>
+    <item
+        android:id="@+id/menu_share"
+        android:title="刷分享"></item>
+</menu>
